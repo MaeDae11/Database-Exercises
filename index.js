@@ -27,6 +27,20 @@ class Customer {
         ('${this.name}','${this.email}', '${this.address}', '${this.password}');
         `);    
     };
+    // pass in id as we are goign to search for this
+    get(id) {
+        // I know I'll return something
+        // arrow function protects me from this key word being redefined
+        return this.db.one(`
+            select name, email, address from customers
+                where customer_id=${id};
+        `).then((result) => {
+            this.name = result.name;
+            this.email = result.email;
+            this.address = result.address;
+            return result;
+        })
+    }
 };
 
 module.exports = Customer;
