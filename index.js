@@ -1,16 +1,9 @@
-require('dotenv').config();
-const pg = require('pg-promise')();
-const dbConfig = {
-    host: process.env.DB_HOST,
-    username: process.env.DB_USER,
-    database: process.env.DB_NAME
-};
+const db = require('./db');
 
 //must pass in dbConfig in here!!!!
 
 class Customer {
     constructor(name, email, addr, password) {
-        this.db = pg(dbConfig);
         this.name = name;
         this.email = email;
         this.address = addr;
@@ -20,25 +13,30 @@ class Customer {
         // safe way would be to go into postgress and see what happens and copy and paste
         //where to insert? 
         // what to insert?
-        return this.db.query(`
+        // returning what? (if want to return)
+        return db.one(`
         insert into customers 
         (name, email, address, password)
         values
-        ('${this.name}','${this.email}', '${this.address}', '${this.password}');
+        ('${this.name}','${this.email}', '${this.address}', '${this.password}')
+        returning customer_id;
         `);    
     };
     // pass in id as we are goign to search for this
-    get(id) {
+    static get(id) {
         // I know I'll return something
         // arrow function protects me from this key word being redefined
-        return this.db.one(`
-            select name, email, address from customers
+        return db.one(`
+            select customer_id, name, email, address from customers
                 where customer_id=${id};
         `).then((result) => {
-            this.name = result.name;
-            this.email = result.email;
-            this.address = result.address;
-            return result;
+            //result is one record
+            let c = new Customer();
+            c.customer_id = result.customer_id;
+            c.name = result.name;
+            c.email = result.email;
+            c.address = result.address;
+            return c;
         })
     }
 };
